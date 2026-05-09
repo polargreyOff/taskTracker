@@ -1,11 +1,12 @@
 import { Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
 import { findUserById, findUserByUsername, createUser } from '../queries/users'
+import { createDeveloperProfile } from '../queries/developerProfiles'
 
 const VALID_ROLES = ['client', 'developer']
 
 export async function register(req: Request, res: Response): Promise<void> {
-  const { username, name, surname, password, role } = req.body
+  const { username, name, surname, password, role, specialization } = req.body
 
   if (!username || !name || !surname || !password || !role) {
     res.status(400).json({ error: 'username, name, surname, password и role обязательны' })
@@ -45,6 +46,10 @@ export async function register(req: Request, res: Response): Promise<void> {
 
   const passwordHash = await bcrypt.hash(password, 10)
   const user = await createUser(username.trim(), name.trim(), surname.trim(), passwordHash, role)
+
+  if (role === 'developer') {
+    await createDeveloperProfile(user.id, specialization ?? null)
+  }
 
   req.session.userId = user.id
   req.session.role   = user.role
