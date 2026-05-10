@@ -1,0 +1,355 @@
+/* Shared styles for LoginPage and RegisterPage */
+
+.screen {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--bg);
+}
+
+/* ── Left art panel ── */
+.art {
+  background: var(--ink);
+  color: var(--bg);
+  padding: 48px 56px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brandMark {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.brandName {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.brandSub {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 1px;
+}
+
+.headline {
+  margin-top: auto;
+  max-width: 460px;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+
+.headlineTitle {
+  margin: 0;
+  font-size: 36px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  color: var(--bg);
+}
+
+.headlineAccent {
+  color: oklch(0.7 0.16 255);
+  font-style: italic;
+  font-family: Georgia, serif;
+  font-weight: 400;
+}
+
+.headlineDesc {
+  margin-top: 18px;
+  opacity: 0.7;
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 420px;
+}
+
+.stats {
+  display: flex;
+  gap: 24px;
+  margin-top: 36px;
+}
+
+.stat {}
+
+.statN {
+  font-size: 28px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
+}
+
+.statLabel {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  opacity: 0.55;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.roleList {
+  margin-top: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.roleItem {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.roleDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: oklch(0.7 0.16 255);
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.roleItemLabel {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.roleItemDesc {
+  opacity: 0.6;
+  font-size: 13px;
+  margin-top: 3px;
+}
+
+.deco {
+  position: absolute;
+  right: -40px;
+  top: 60px;
+  opacity: 0.05;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  color: white;
+  white-space: pre;
+  transform: rotate(-2deg);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Right form panel ── */
+.formWrap {
+  display: grid;
+  place-items: center;
+  padding: 40px;
+  overflow-y: auto;
+}
+
+.formInner {
+  width: 100%;
+  max-width: 380px;
+}
+
+.formEyebrow {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--accent-ink);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.formTitle {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+
+.formDesc {
+  color: var(--ink-3);
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+/* Role tile selector */
+.roleTiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.roleTile {
+  padding: 14px;
+  text-align: left;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.roleTile[data-active='true'] {
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.roleTile[data-active='false'] {
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.roleTileLabel {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 3px;
+}
+
+.roleTileDesc {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  opacity: 0.65;
+}
+
+/* Form fields */
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.field {}
+
+.label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.12s, box-shadow 0.12s;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px oklch(0.55 0.16 255 / 0.12);
+}
+
+.select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.12s, box-shadow 0.12s;
+  font-family: inherit;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%23888' d='M0 0h12L6 8z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px oklch(0.55 0.16 255 / 0.12);
+}
+
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.error {
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: oklch(0.965 0.04 25);
+  border: 1px solid oklch(0.86 0.06 25);
+  color: oklch(0.42 0.14 25);
+  font-size: 13px;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 11px 14px;
+  margin-top: 4px;
+  border-radius: var(--r-sm);
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.12s;
+  font-family: inherit;
+}
+
+.submitBtn:enabled {
+  background: var(--ink);
+  color: var(--bg);
+  cursor: pointer;
+}
+
+.submitBtn:disabled {
+  background: var(--ink-4);
+  color: var(--bg);
+  cursor: not-allowed;
+}
+
+.footerLink {
+  text-align: center;
+  margin-top: 20px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+.footerLink a {
+  color: var(--accent-ink);
+  text-decoration: none;
+}
