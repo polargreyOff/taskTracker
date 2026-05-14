@@ -2,6 +2,7 @@ import express from 'express'
 import type { Request, Response, NextFunction } from 'express'
 import sessionMiddleware from './middlewares/session'
 import authRouter from './routes/authRouter'
+import teamRouter from './routes/teamRouter'
 
 const app = express()
 
@@ -18,7 +19,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use(express.json())
 app.use(sessionMiddleware)
 
-app.use('/auth', authRouter)
+app.use('/auth',  authRouter)
+app.use('/teams', teamRouter)
 
 app.get('/health', (_req, res) => {
   res.json({ ok: true })

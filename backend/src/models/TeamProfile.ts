@@ -34,10 +34,10 @@ export class TeamProfile {
     return new TeamProfile(rows[0])
   }
 
-  static async findByUserId(userId: string): Promise<TeamProfile | null> {
+  static async findByUserAndTeam(userId: string, teamId: string): Promise<TeamProfile | null> {
     const { rows } = await pool.query<TeamProfileRow>(
-      'SELECT * FROM team_profiles WHERE user_id = $1',
-      [userId]
+      'SELECT * FROM team_profiles WHERE user_id = $1 AND team_id = $2',
+      [userId, teamId]
     )
     return rows[0] ? new TeamProfile(rows[0]) : null
   }
