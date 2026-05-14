@@ -24,12 +24,11 @@ export async function apiLogin(username: string, password: string): Promise<User
 }
 
 export async function apiRegister(payload: {
-  username:        string
-  name:            string
-  surname:         string
-  password:        string
-  role:            string
-  specialization?: string
+  username: string
+  name:     string
+  surname:  string
+  password: string
+  role:     string
 }): Promise<User> {
   const { data } = await api.post<User>('/auth/register', payload)
   return data

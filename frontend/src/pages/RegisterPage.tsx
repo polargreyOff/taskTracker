@@ -12,7 +12,6 @@ interface FormState {
   surname: string
   password: string
   role: string
-  specialization: string
 }
 
 export default function RegisterPage() {
@@ -22,7 +21,6 @@ export default function RegisterPage() {
     surname: '',
     password: '',
     role: 'client',
-    specialization: '',
   })
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -50,7 +48,6 @@ export default function RegisterPage() {
         surname: form.surname.trim(),
         password: form.password,
         role: form.role,
-        specialization: form.role === 'developer' ? form.specialization || undefined : undefined,
       })
       dispatch(setUser(user))
       navigate(user.role === 'client' ? '/client/requests' : '/developer/board', { replace: true })
@@ -124,7 +121,7 @@ export default function RegisterPage() {
               <button
                 key={opt.value}
                 type="button"
-                onClick={() => setForm(f => ({ ...f, role: opt.value, specialization: '' }))}
+                onClick={() => setForm(f => ({ ...f, role: opt.value }))}
                 className={styles.roleTile}
                 data-active={form.role === opt.value ? 'true' : 'false'}
               >
@@ -180,23 +177,6 @@ export default function RegisterPage() {
                   autoComplete="new-password"
                 />
               </div>
-
-              {form.role === 'developer' && (
-                <div className={styles.field}>
-                  <label className={styles.label}>Специализация</label>
-                  <select
-                    className={styles.select}
-                    value={form.specialization}
-                    onChange={e => setForm(f => ({ ...f, specialization: e.target.value }))}
-                  >
-                    <option value="">Не указана</option>
-                    <option value="frontend">Фронтенд</option>
-                    <option value="backend">Бэкенд</option>
-                    <option value="qa">QA / Тестирование</option>
-                    <option value="analytics">Аналитика</option>
-                  </select>
-                </div>
-              )}
 
               {error && <div className={styles.error}>{error}</div>}
 
