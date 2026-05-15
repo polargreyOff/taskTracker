@@ -82,4 +82,40 @@ export class Task {
     )
     return rows.map(r => new Task(r))
   }
+
+  static async findById(id: string): Promise<Task | null> {
+    const { rows } = await pool.query<TaskRow>(
+      'SELECT * FROM tasks WHERE id = $1',
+      [id]
+    )
+    return rows[0] ? new Task(rows[0]) : null
+  }
+
+  async updateStatus(status: string): Promise<void> {
+    const { rows } = await pool.query<TaskRow>(
+      `UPDATE tasks
+          SET status = $1, updated_at = NOW()
+        WHERE id = $2
+        RETURNING *`,
+      [status, this.id]
+    )
+    if (rows[0]) {
+      this.status     = rows[0].status
+      this.updated_at = rows[0].updated_at
+    }
+  }
+
+  async assign(assigneeId: string | null): Promise<void> {
+    const { rows } = await pool.query<TaskRow>(
+      `UPDATE tasks
+          SET assignee_id = $1, updated_at = NOW()
+        WHERE id = $2
+        RETURNING *`,
+      [assigneeId, this.id]
+    )
+    if (rows[0]) {
+      this.assignee_id = rows[0].assignee_id
+      this.updated_at  = rows[0].updated_at
+    }
+  }
 }
