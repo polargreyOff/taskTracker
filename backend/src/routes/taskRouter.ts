@@ -4,7 +4,7 @@ import { requireAuth } from '../middlewares/auth'
 
 const router = Router()
 
-router.patch('/:id/status',   requireAuth, TaskController.updateStatus)
-router.patch('/:id/assignee', requireAuth, TaskController.assign)
+router.get  ('/',    requireAuth, TaskController.list)
+router.patch('/:id', requireAuth, TaskController.update)
 
-export default router   
+export default router

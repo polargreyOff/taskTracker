@@ -91,31 +91,49 @@ export class Task {
     return rows[0] ? new Task(rows[0]) : null
   }
 
-  async updateStatus(status: string): Promise<void> {
+  static async findByTeamId(teamId: string): Promise<Task[]> {
     const { rows } = await pool.query<TaskRow>(
-      `UPDATE tasks
-          SET status = $1, updated_at = NOW()
-        WHERE id = $2
-        RETURNING *`,
-      [status, this.id]
+      'SELECT * FROM tasks WHERE team_id = $1 ORDER BY created_at',
+      [teamId]
     )
-    if (rows[0]) {
-      this.status     = rows[0].status
-      this.updated_at = rows[0].updated_at
-    }
+    return rows.map(r => new Task(r))
   }
 
-  async assign(assigneeId: string | null): Promise<void> {
+  async edit(data: {
+    title?:       string
+    description?: string | null
+    status?:      string
+    priority?:    string
+    assignee_id?: string | null
+    development?: string | null
+  }): Promise<void> {
+    const updates: string[] = []
+    const values:  unknown[] = []
+    let idx = 1
+
+    const set = (field: string, value: unknown) => {
+      updates.push(`${field} = $${idx++}`)
+      values.push(value)
+    }
+
+    if (data.title       !== undefined) set('title',       data.title)
+    if (data.description !== undefined) set('description', data.description)
+    if (data.status      !== undefined) set('status',      data.status)
+    if (data.priority    !== undefined) set('priority',    data.priority)
+    if (data.assignee_id !== undefined) set('assignee_id', data.assignee_id)
+    if (data.development !== undefined) set('development', data.development)
+
+    if (updates.length === 0) return
+
+    updates.push('updated_at = NOW()')
+    values.push(this.id)
+
     const { rows } = await pool.query<TaskRow>(
-      `UPDATE tasks
-          SET assignee_id = $1, updated_at = NOW()
-        WHERE id = $2
-        RETURNING *`,
-      [assigneeId, this.id]
+      `UPDATE tasks SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`,
+      values
     )
     if (rows[0]) {
-      this.assignee_id = rows[0].assignee_id
-      this.updated_at  = rows[0].updated_at
+      Object.assign(this, rows[0])
     }
   }
 }
