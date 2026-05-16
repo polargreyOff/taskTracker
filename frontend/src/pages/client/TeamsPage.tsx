@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import AppShell from '../../components/AppShell'
-import { apiAddMember, apiCreateTeam, apiGetMyTeams } from '../../api/teams'
-import type { Team } from '../../api/teams'
+import { apiAddMember, apiCreateTeam } from '../../api/teams'
+import type { AppDispatch, RootState } from '../../store'
+import { fetchTeams } from '../../store/teamsSlice'
 import styles from './teams.module.css'
 
 const SPECIALIZATIONS = [
@@ -36,41 +38,34 @@ function initials(name: string, surname: string): string {
 }
 
 export default function TeamsPage() {
-  const [teams,      setTeams]      = useState<Team[]>([])
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [loading,    setLoading]    = useState(true)
-  const [loadError,  setLoadError]  = useState('')
+  const dispatch = useDispatch<AppDispatch>()
+  const { items: teams, loading, loaded, error: loadError } = useSelector((s: RootState) => s.teams)
 
-  const [newName,      setNewName]      = useState('')
-  const [creating,     setCreating]     = useState(false)
-  const [createError,  setCreateError]  = useState('')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+
+  const [newName,     setNewName]     = useState('')
+  const [creating,    setCreating]    = useState(false)
+  const [createError, setCreateError] = useState('')
 
   const [memberUsername, setMemberUsername] = useState('')
   const [memberSpec,     setMemberSpec]     = useState('frontend')
   const [addingMember,   setAddingMember]   = useState(false)
   const [addError,       setAddError]       = useState('')
 
-  const selected = teams.find(t => t.id === selectedId) ?? null
+  useEffect(() => {
+    if (!loaded) dispatch(fetchTeams())
+  }, [loaded, dispatch])
 
-  const load = async () => {
-    setLoading(true)
-    setLoadError('')
-    try {
-      const data = await apiGetMyTeams()
-      setTeams(data)
-      if (data.length > 0) {
-        setSelectedId(prev => prev && data.some(t => t.id === prev) ? prev : data[0].id)
-      } else {
-        setSelectedId(null)
-      }
-    } catch (err) {
-      setLoadError(errorMessage(err, 'Не удалось загрузить команды'))
-    } finally {
-      setLoading(false)
+  // Sync selection with teams list
+  useEffect(() => {
+    if (teams.length === 0) {
+      setSelectedId(null)
+      return
     }
-  }
+    setSelectedId(prev => (prev && teams.some(t => t.id === prev)) ? prev : teams[0].id)
+  }, [teams])
 
-  useEffect(() => { load() }, [])
+  const selected = teams.find(t => t.id === selectedId) ?? null
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -81,7 +76,7 @@ export default function TeamsPage() {
     try {
       const team = await apiCreateTeam(trimmed)
       setNewName('')
-      await load()
+      await dispatch(fetchTeams()).unwrap()
       setSelectedId(team.id)
     } catch (err) {
       setCreateError(errorMessage(err, 'Не удалось создать команду'))
@@ -100,7 +95,7 @@ export default function TeamsPage() {
     try {
       await apiAddMember(selected.id, username, memberSpec)
       setMemberUsername('')
-      await load()
+      await dispatch(fetchTeams()).unwrap()
     } catch (err) {
       setAddError(errorMessage(err, 'Не удалось добавить участника'))
     } finally {
@@ -118,13 +113,13 @@ export default function TeamsPage() {
             <span className={styles.sidebarCount}>{teams.length}</span>
           </div>
 
-          {loading && <div className={styles.sidebarEmpty}>загрузка...</div>}
+          {loading && !loaded && <div className={styles.sidebarEmpty}>загрузка...</div>}
 
-          {!loading && teams.length === 0 && (
+          {loaded && teams.length === 0 && (
             <div className={styles.sidebarEmpty}>команд пока нет</div>
           )}
 
-          {!loading && teams.map(team => (
+          {teams.map(team => (
             <button
               key={team.id}
               type="button"
@@ -165,7 +160,7 @@ export default function TeamsPage() {
 
         {/* ── Detail: selected team ── */}
         <section className={styles.detail}>
-          {!selected && !loading && (
+          {!selected && loaded && (
             <div className={styles.empty}>
               <span className={styles.emptyTitle}>Команда не выбрана</span>
               <p className={styles.emptyText}>

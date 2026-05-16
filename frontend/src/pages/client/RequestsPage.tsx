@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import AppShell from '../../components/AppShell'
-import { apiGetMyTeams } from '../../api/teams'
-import type { Team } from '../../api/teams'
+import type { AppDispatch, RootState } from '../../store'
+import { fetchTeams } from '../../store/teamsSlice'
 import { apiGetMyRequests } from '../../api/requests'
 import type { Request as ClientRequest } from '../../api/requests'
 import { apiGetTasksByTeam } from '../../api/tasks'
@@ -73,10 +74,12 @@ function formatRelative(iso: string): string {
 
 export default function ClientRequestsPage() {
   const navigate = useNavigate()
+  const dispatch = useDispatch<AppDispatch>()
 
-  const [teams,    setTeams]    = useState<Team[]>([])
-  const [requests, setRequests] = useState<ClientRequest[]>([])
-  const [loading,  setLoading]  = useState(true)
+  const { items: teams, loaded: teamsLoaded } = useSelector((s: RootState) => s.teams)
+
+  const [requests,  setRequests]  = useState<ClientRequest[]>([])
+  const [loading,   setLoading]   = useState(true)
   const [loadError, setLoadError] = useState('')
 
   const [teamFilter,        setTeamFilter]        = useState<string>('all')
@@ -85,30 +88,25 @@ export default function ClientRequestsPage() {
   const [tasksByTeam, setTasksByTeam] = useState<Record<string, Task[]>>({})
   const [tasksError,  setTasksError]  = useState('')
 
-  // Initial load: teams + requests in parallel
+  useEffect(() => {
+    if (!teamsLoaded) dispatch(fetchTeams())
+  }, [teamsLoaded, dispatch])
+
   useEffect(() => {
     let cancelled = false
-    async function load() {
-      setLoading(true)
-      setLoadError('')
-      try {
-        const [teamsData, requestsData] = await Promise.all([
-          apiGetMyTeams(),
-          apiGetMyRequests(),
-        ])
+    setLoading(true)
+    setLoadError('')
+    apiGetMyRequests()
+      .then(data => {
         if (cancelled) return
-        setTeams(teamsData)
-        setRequests(requestsData)
-        if (requestsData.length > 0) {
-          setSelectedRequestId(requestsData[0].id)
-        }
-      } catch (err) {
-        if (!cancelled) setLoadError(errorMessage(err, 'Не удалось загрузить данные'))
-      } finally {
+        setRequests(data)
+      })
+      .catch(err => {
+        if (!cancelled) setLoadError(errorMessage(err, 'Не удалось загрузить запросы'))
+      })
+      .finally(() => {
         if (!cancelled) setLoading(false)
-      }
-    }
-    load()
+      })
     return () => { cancelled = true }
   }, [])
 
@@ -121,6 +119,19 @@ export default function ClientRequestsPage() {
     if (teamFilter === 'all') return requests
     return requests.filter(r => r.team_id === teamFilter)
   }, [requests, teamFilter])
+
+  // Keep selection in sync with the filtered list:
+  // - if filtered is empty → clear
+  // - if currently selected isn't in filtered → pick first
+  useEffect(() => {
+    if (filteredRequests.length === 0) {
+      setSelectedRequestId(null)
+      return
+    }
+    setSelectedRequestId(prev =>
+      (prev && filteredRequests.some(r => r.id === prev)) ? prev : filteredRequests[0].id
+    )
+  }, [filteredRequests])
 
   const selectedRequest = useMemo(
     () => requests.find(r => r.id === selectedRequestId) ?? null,
