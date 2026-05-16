@@ -18,3 +18,19 @@ export async function apiGetTasksByTeam(teamId: string): Promise<Task[]> {
   const { data } = await api.get<Task[]>('/tasks', { params: { team_id: teamId } })
   return data
 }
+
+export async function apiUpdateTask(
+  id: string,
+  patch: {
+    title?:        string
+    description?:  string | null
+    status?:       string
+    priority?:     string
+    assignee_id?:  string | null
+    development?:  string | null
+  },
+): Promise<Task> {
+  const { data } = await api.patch<Task>(`/tasks/${id}`, patch)
+  return data
+}
+

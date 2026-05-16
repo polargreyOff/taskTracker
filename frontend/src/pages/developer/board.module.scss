@@ -86,6 +86,13 @@
   border-radius: var(--r-lg);
   padding: 12px;
   min-height: 280px;
+  transition: background 0.12s, border-color 0.12s;
+
+  &[data-drag-over='true'] {
+    background: var(--accent-bg);
+    border-color: var(--accent-line);
+    border-style: dashed;
+  }
 }
 
 .columnHeader {
@@ -128,12 +135,22 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  cursor: pointer;
-  transition: border-color 0.12s, box-shadow 0.12s;
+  cursor: grab;
+  user-select: none;
+  transition: border-color 0.12s, box-shadow 0.12s, opacity 0.12s;
 
   &:hover {
     border-color: var(--line-strong);
     box-shadow: var(--shadow-1);
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &[data-dragging='true'] {
+    opacity: 0.4;
+    box-shadow: none;
   }
 
   .taskHeader {

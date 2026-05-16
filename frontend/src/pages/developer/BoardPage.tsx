@@ -4,7 +4,7 @@ import AppShell from '../../components/AppShell'
 import type { AppDispatch, RootState } from '../../store'
 import { fetchTeams } from '../../store/teamsSlice'
 import { useAuth } from '../../hooks/useAuth'
-import { apiGetTasksByTeam } from '../../api/tasks'
+import { apiGetTasksByTeam, apiUpdateTask } from '../../api/tasks'
 import type { Task } from '../../api/tasks'
 import type { TeamMember } from '../../api/teams'
 import styles from './board.module.scss'
@@ -72,6 +72,57 @@ export default function BoardPage() {
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [sphereFilter,   setSphereFilter]   = useState('all')
   const [assigneeFilter, setAssigneeFilter] = useState('all')
+
+  const [draggingId,     setDraggingId]     = useState<string | null>(null)
+  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null)
+
+  const moveTask = async (taskId: string, newStatus: string) => {
+    const task = tasks.find(t => t.id === taskId)
+    if (!task || task.status === newStatus) return
+
+    const prevTasks = tasks
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t))
+
+    try {
+      const updated = await apiUpdateTask(taskId, { status: newStatus })
+      setTasks(prev => prev.map(t => t.id === taskId ? updated : t))
+    } catch (err) {
+      setTasks(prevTasks)
+      setError(errorMessage(err, 'Не удалось переместить задачу'))
+    }
+  }
+
+  const onTaskDragStart = (e: React.DragEvent, taskId: string) => {
+    e.dataTransfer.setData('text/plain', taskId)
+    e.dataTransfer.effectAllowed = 'move'
+    setDraggingId(taskId)
+  }
+
+  const onTaskDragEnd = () => {
+    setDraggingId(null)
+    setDragOverColumn(null)
+  }
+
+  const onColumnDragOver = (e: React.DragEvent, status: string) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    if (dragOverColumn !== status) setDragOverColumn(status)
+  }
+
+  const onColumnDragLeave = (e: React.DragEvent, status: string) => {
+    // Only clear when leaving the column itself, not its children
+    if (!e.currentTarget.contains(e.relatedTarget as Node) && dragOverColumn === status) {
+      setDragOverColumn(null)
+    }
+  }
+
+  const onColumnDrop = (e: React.DragEvent, status: string) => {
+    e.preventDefault()
+    const taskId = e.dataTransfer.getData('text/plain')
+    setDraggingId(null)
+    setDragOverColumn(null)
+    if (taskId) moveTask(taskId, status)
+  }
 
   useEffect(() => {
     if (!teamsLoaded) dispatch(fetchTeams())
@@ -202,7 +253,14 @@ export default function BoardPage() {
       {teamId && (
         <div className={styles.board}>
           {COLUMNS.map(col => (
-            <div key={col.value} className={styles.column}>
+            <div
+              key={col.value}
+              className={styles.column}
+              data-drag-over={dragOverColumn === col.value ? 'true' : 'false'}
+              onDragOver={e => onColumnDragOver(e, col.value)}
+              onDragLeave={e => onColumnDragLeave(e, col.value)}
+              onDrop={e => onColumnDrop(e, col.value)}
+            >
               <div className={styles.columnHeader}>
                 <span
                   className={styles.columnDot}
@@ -216,7 +274,14 @@ export default function BoardPage() {
                   const assignee = task.assignee_id ? memberById[task.assignee_id] : null
                   const dev = task.development ?? 'unknown'
                   return (
-                    <div key={task.id} className={styles.task}>
+                    <div
+                      key={task.id}
+                      className={styles.task}
+                      draggable
+                      data-dragging={draggingId === task.id ? 'true' : 'false'}
+                      onDragStart={e => onTaskDragStart(e, task.id)}
+                      onDragEnd={onTaskDragEnd}
+                    >
                       <div className={styles.taskHeader}>
                         <span className={styles.taskId}>#{task.id.slice(0, 6)}</span>
                         <span className={`${styles.tag} ${PRIORITY_CLASS[task.priority] ?? styles.priMedium}`}>
