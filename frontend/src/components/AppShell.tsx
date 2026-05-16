@@ -20,6 +20,7 @@ const CLIENT_NAV = [
 
 const DEV_NAV = [
   { to: '/developer/board',    label: 'Kanban-доска' },
+  { to: '/developer/teams',    label: 'Моя команда' },
   { to: '/developer/requests', label: 'Запросы' },
 ]
 

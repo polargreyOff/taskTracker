@@ -14,6 +14,7 @@ import RequestDetailPage   from './pages/client/RequestDetailPage'
 import TeamsPage           from './pages/client/TeamsPage'
 import BoardPage           from './pages/developer/BoardPage'
 import DevRequestsListPage from './pages/developer/RequestsListPage'
+import DevTeamsPage        from './pages/developer/TeamsPage'
 
 function RootRedirect() {
   const { user, loading } = useAuth()
@@ -51,6 +52,9 @@ export default function App() {
         } />
         <Route path="/developer/requests" element={
           <ProtectedRoute role="developer"><DevRequestsListPage /></ProtectedRoute>
+        } />
+        <Route path="/developer/teams" element={
+          <ProtectedRoute role="developer"><DevTeamsPage /></ProtectedRoute>
         } />
 
         <Route path="*" element={<Navigate to="/" replace />} />
