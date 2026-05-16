@@ -7,6 +7,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { apiGetTasksByTeam, apiUpdateTask } from '../../api/tasks'
 import type { Task } from '../../api/tasks'
 import type { TeamMember } from '../../api/teams'
+import TaskEditModal from './TaskEditModal'
 import styles from './board.module.scss'
 
 const COLUMNS: Array<{ value: string, label: string, hue: number }> = [
@@ -75,6 +76,7 @@ export default function BoardPage() {
 
   const [draggingId,     setDraggingId]     = useState<string | null>(null)
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null)
+  const [editingTaskId,  setEditingTaskId]  = useState<string | null>(null)
 
   const moveTask = async (taskId: string, newStatus: string) => {
     const task = tasks.find(t => t.id === taskId)
@@ -281,6 +283,7 @@ export default function BoardPage() {
                       data-dragging={draggingId === task.id ? 'true' : 'false'}
                       onDragStart={e => onTaskDragStart(e, task.id)}
                       onDragEnd={onTaskDragEnd}
+                      onClick={() => setEditingTaskId(task.id)}
                     >
                       <div className={styles.taskHeader}>
                         <span className={styles.taskId}>#{task.id.slice(0, 6)}</span>
@@ -319,6 +322,24 @@ export default function BoardPage() {
           ))}
         </div>
       )}
+
+      {editingTaskId && (() => {
+        const task = tasks.find(t => t.id === editingTaskId)
+        if (!task) return null
+        const team = teams.find(t => t.id === teamId)
+        const members = team?.members ?? []
+        return (
+          <TaskEditModal
+            task={task}
+            teamMembers={members}
+            onClose={() => setEditingTaskId(null)}
+            onSave={updated => {
+              setTasks(prev => prev.map(t => t.id === updated.id ? updated : t))
+              setEditingTaskId(null)
+            }}
+          />
+        )
+      })()}
     </AppShell>
   )
 }
