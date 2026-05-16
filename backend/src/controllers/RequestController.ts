@@ -7,6 +7,7 @@ import {
   VALID_URGENCIES,
 } from '../services/TaskGenerationService'
 import type { SurveyAnswers } from '../services/TaskGenerationService'
+import { Request as RequestModel } from '../models/Request'
 import { Team } from '../models/Team'
 import { TeamProfile } from '../models/TeamProfile'
 
@@ -15,6 +16,17 @@ const INPUT_AREAS        = [...VALID_AREAS,           'unknown']
 const INPUT_AUDIENCES    = [...VALID_AUDIENCES,       'unknown']
 
 export class RequestController {
+  static async listMy(req: ExpressRequest, res: Response): Promise<void> {
+    const userId = req.session.userId
+    if (!userId) {
+      res.status(401).json({ error: 'Не авторизован' })
+      return
+    }
+
+    const requests = await RequestModel.findAllByUserId(userId)
+    res.json(requests)
+  }
+
   static async createRequest(req: ExpressRequest, res: Response): Promise<void> {
     const userId = req.session.userId
     if (!userId) {

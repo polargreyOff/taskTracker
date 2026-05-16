@@ -72,6 +72,14 @@ export class Request {
     return rows[0] ? new Request(rows[0]) : null
   }
 
+  static async findAllByUserId(userId: string): Promise<Request[]> {
+    const { rows } = await pool.query<RequestRow>(
+      'SELECT * FROM requests WHERE user_id = $1 ORDER BY created_at DESC',
+      [userId]
+    )
+    return rows.map(r => new Request(r))
+  }
+
   async getAnswers(): Promise<RequestAnswer[]> {
     return RequestAnswer.findByRequestId(this.id)
   }
