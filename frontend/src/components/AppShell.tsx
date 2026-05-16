@@ -14,7 +14,8 @@ interface Props {
 
 const CLIENT_NAV = [
   { to: '/client/requests',     label: 'Мои запросы' },
-  { to: '/client/requests/new', label: 'Новый запрос' },
+  { to: '/client/teams',        label: 'Моя команда' },
+  { to: '/client/requests/new', label: 'Создать запрос' },
 ]
 
 const DEV_NAV = [

@@ -11,6 +11,7 @@ import RegisterPage        from './pages/RegisterPage'
 import ClientRequestsPage  from './pages/client/RequestsPage'
 import NewRequestPage      from './pages/client/NewRequestPage'
 import RequestDetailPage   from './pages/client/RequestDetailPage'
+import TeamsPage           from './pages/client/TeamsPage'
 import BoardPage           from './pages/developer/BoardPage'
 import DevRequestsListPage from './pages/developer/RequestsListPage'
 
@@ -40,6 +41,9 @@ export default function App() {
         } />
         <Route path="/client/requests/:id" element={
           <ProtectedRoute role="client"><RequestDetailPage /></ProtectedRoute>
+        } />
+        <Route path="/client/teams" element={
+          <ProtectedRoute role="client"><TeamsPage /></ProtectedRoute>
         } />
 
         <Route path="/developer/board" element={
