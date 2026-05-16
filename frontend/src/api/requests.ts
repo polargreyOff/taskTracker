@@ -36,6 +36,11 @@ export async function apiGetMyRequests(): Promise<Request[]> {
   return data
 }
 
+export async function apiGetRequestsByTeam(teamId: string): Promise<Request[]> {
+  const { data } = await api.get<Request[]>('/requests', { params: { team_id: teamId } })
+  return data
+}
+
 export async function apiCreateRequest(payload: {
   team_id: string
   answers: SurveyAnswers

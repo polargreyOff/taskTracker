@@ -27,6 +27,29 @@ export class RequestController {
     res.json(requests)
   }
 
+  static async listByTeam(req: ExpressRequest, res: Response): Promise<void> {
+    const userId = req.session.userId
+    if (!userId) {
+      res.status(401).json({ error: 'Не авторизован' })
+      return
+    }
+
+    const teamId = typeof req.query.team_id === 'string' ? req.query.team_id : ''
+    if (!teamId) {
+      res.status(400).json({ error: 'team_id обязателен (query-параметр)' })
+      return
+    }
+
+    const profile = await TeamProfile.findByUserAndTeam(userId, teamId)
+    if (!profile) {
+      res.status(403).json({ error: 'Вы не состоите в этой команде' })
+      return
+    }
+
+    const requests = await RequestModel.findAllByTeamId(teamId)
+    res.json(requests)
+  }
+
   static async createRequest(req: ExpressRequest, res: Response): Promise<void> {
     const userId = req.session.userId
     if (!userId) {

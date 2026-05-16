@@ -80,6 +80,14 @@ export class Request {
     return rows.map(r => new Request(r))
   }
 
+  static async findAllByTeamId(teamId: string): Promise<Request[]> {
+    const { rows } = await pool.query<RequestRow>(
+      'SELECT * FROM requests WHERE team_id = $1 ORDER BY created_at DESC',
+      [teamId]
+    )
+    return rows.map(r => new Request(r))
+  }
+
   async getAnswers(): Promise<RequestAnswer[]> {
     return RequestAnswer.findByRequestId(this.id)
   }
