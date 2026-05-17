@@ -34,3 +34,15 @@ export async function apiUpdateTask(
   return data
 }
 
+export async function apiCreateTask(payload: {
+  team_id:      string
+  title:        string
+  description?: string | null
+  priority?:    string
+  development?: string | null
+  assignee_id?: string | null
+}): Promise<Task> {
+  const { data } = await api.post<Task>('/tasks', payload)
+  return data
+}
+

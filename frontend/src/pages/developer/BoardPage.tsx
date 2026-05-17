@@ -8,6 +8,7 @@ import { apiGetTasksByTeam, apiUpdateTask } from '../../api/tasks'
 import type { Task } from '../../api/tasks'
 import type { TeamMember } from '../../api/teams'
 import TaskEditModal from './TaskEditModal'
+import TaskCreateModal from './TaskCreateModal'
 import styles from './board.module.scss'
 
 const COLUMNS: Array<{ value: string, label: string, hue: number }> = [
@@ -77,6 +78,7 @@ export default function BoardPage() {
   const [draggingId,     setDraggingId]     = useState<string | null>(null)
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null)
   const [editingTaskId,  setEditingTaskId]  = useState<string | null>(null)
+  const [creatingTask,   setCreatingTask]   = useState(false)
 
   const moveTask = async (taskId: string, newStatus: string) => {
     const task = tasks.find(t => t.id === taskId)
@@ -187,7 +189,30 @@ export default function BoardPage() {
   }, [filteredTasks])
 
   return (
-    <AppShell crumb="Разработчик" title="Kanban-доска">
+    <AppShell
+      crumb="Разработчик"
+      title="Kanban-доска"
+      action={
+        <button
+          type="button"
+          onClick={() => setCreatingTask(true)}
+          disabled={!teamId}
+          style={{
+            padding: '7px 14px',
+            borderRadius: 'var(--r-sm)',
+            border: 'none',
+            background: teamId ? 'var(--ink)' : 'var(--ink-4)',
+            color: 'var(--bg)',
+            fontSize: 13,
+            fontWeight: 500,
+            cursor: teamId ? 'pointer' : 'not-allowed',
+            fontFamily: 'inherit',
+          }}
+        >
+          + Задача
+        </button>
+      }
+    >
       <div className={styles.toolbar}>
         {/* Team picker — separated */}
         <div className={styles.teamPicker}>
@@ -336,6 +361,22 @@ export default function BoardPage() {
             onSave={updated => {
               setTasks(prev => prev.map(t => t.id === updated.id ? updated : t))
               setEditingTaskId(null)
+            }}
+          />
+        )
+      })()}
+
+      {creatingTask && teamId && (() => {
+        const team = teams.find(t => t.id === teamId)
+        const members = team?.members ?? []
+        return (
+          <TaskCreateModal
+            teamId={teamId}
+            teamMembers={members}
+            onClose={() => setCreatingTask(false)}
+            onCreate={task => {
+              setTasks(prev => [...prev, task])
+              setCreatingTask(false)
             }}
           />
         )
