@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import AppShell from '../../components/AppShell'
-import { apiAddMember, apiCreateTeam } from '../../api/teams'
+import { apiAddMember, apiCreateTeam, apiRemoveMember } from '../../api/teams'
+import type { TeamMember } from '../../api/teams'
 import type { AppDispatch, RootState } from '../../store'
 import { fetchTeams } from '../../store/teamsSlice'
 import styles from './teams.module.css'
@@ -52,6 +53,9 @@ export default function TeamsPage() {
   const [addingMember,   setAddingMember]   = useState(false)
   const [addError,       setAddError]       = useState('')
 
+  const [removingId,  setRemovingId]  = useState<string | null>(null)
+  const [removeError, setRemoveError] = useState('')
+
   useEffect(() => {
     if (!loaded) dispatch(fetchTeams())
   }, [loaded, dispatch])
@@ -82,6 +86,25 @@ export default function TeamsPage() {
       setCreateError(errorMessage(err, 'Не удалось создать команду'))
     } finally {
       setCreating(false)
+    }
+  }
+
+  const handleRemoveMember = async (m: TeamMember) => {
+    if (!selected || removingId) return
+    const confirmed = window.confirm(
+      `Удалить ${m.name} ${m.surname} (@${m.username}) из команды «${selected.name}»?\n\n` +
+      `Все его назначенные задачи в этой команде будут откреплены.`
+    )
+    if (!confirmed) return
+    setRemovingId(m.id)
+    setRemoveError('')
+    try {
+      await apiRemoveMember(selected.id, m.id)
+      await dispatch(fetchTeams()).unwrap()
+    } catch (err) {
+      setRemoveError(errorMessage(err, 'Не удалось удалить участника'))
+    } finally {
+      setRemovingId(null)
     }
   }
 
@@ -187,6 +210,7 @@ export default function TeamsPage() {
                   const specKey  = m.specialization ?? 'unknown'
                   const specCls  = SPEC_CLASS[specKey] ?? styles.specUnknown
                   const specText = SPEC_LABEL[specKey] ?? 'не указана'
+                  const canRemove = specKey !== 'client'
                   return (
                     <div key={m.id} className={styles.member}>
                       <div className={styles.memberAvatar}>{initials(m.name, m.surname)}</div>
@@ -195,10 +219,23 @@ export default function TeamsPage() {
                         <div className={styles.memberUsername}>@{m.username}</div>
                       </div>
                       <span className={`${styles.memberSpec} ${specCls}`}>{specText}</span>
+                      {canRemove && (
+                        <button
+                          type="button"
+                          className={styles.removeBtn}
+                          onClick={() => handleRemoveMember(m)}
+                          disabled={removingId === m.id}
+                          title="Удалить из команды"
+                          aria-label={`Удалить ${m.name} ${m.surname} из команды`}
+                        >
+                          ✕
+                        </button>
+                      )}
                     </div>
                   )
                 })}
               </div>
+              {removeError && <div className={styles.error}>{removeError}</div>}
 
               <div className={styles.sectionTitle}>Добавить разработчика</div>
               <form className={styles.addMemberForm} onSubmit={handleAddMember}>

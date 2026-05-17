@@ -229,6 +229,32 @@
   border-radius: var(--r-md);
 }
 
+.removeBtn {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  margin-left: 4px;
+  border: none;
+  background: transparent;
+  color: var(--ink-4);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: var(--r-sm);
+  transition: background 0.12s, color 0.12s;
+  flex-shrink: 0;
+}
+
+.removeBtn:hover:not(:disabled) {
+  background: oklch(0.95 0.05 25);
+  color: oklch(0.45 0.16 25);
+}
+
+.removeBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .memberAvatar {
   width: 32px;
   height: 32px;

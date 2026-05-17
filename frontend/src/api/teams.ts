@@ -33,3 +33,7 @@ export async function apiAddMember(
 ): Promise<void> {
   await api.post(`/teams/${teamId}/members`, { username, specialization })
 }
+
+export async function apiRemoveMember(teamId: string, userId: string): Promise<void> {
+  await api.delete(`/teams/${teamId}/members/${userId}`)
+}
