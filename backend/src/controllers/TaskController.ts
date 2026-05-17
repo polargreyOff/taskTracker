@@ -8,6 +8,97 @@ const VALID_PRIORITIES   = ['low', 'medium', 'high', 'urgent']
 const VALID_DEVELOPMENTS = ['frontend', 'backend', 'qa', 'analytics']
 
 export class TaskController {
+  static async create(req: ExpressRequest, res: Response): Promise<void> {
+    const userId = req.session.userId
+    if (!userId) {
+      res.status(401).json({ error: 'Не авторизован' })
+      return
+    }
+
+    const { team_id, title, description, priority, development, assignee_id } = req.body ?? {}
+
+    if (!team_id || typeof team_id !== 'string') {
+      res.status(400).json({ error: 'team_id обязателен' })
+      return
+    }
+
+    if (!title || typeof title !== 'string' || title.trim().length === 0) {
+      res.status(400).json({ error: 'title обязателен' })
+      return
+    }
+
+    if (description !== undefined && description !== null && typeof description !== 'string') {
+      res.status(400).json({ error: 'description должен быть строкой или null' })
+      return
+    }
+
+    const finalPriority = priority ?? 'medium'
+    if (typeof finalPriority !== 'string' || !VALID_PRIORITIES.includes(finalPriority)) {
+      res.status(400).json({ error: `priority должен быть одним из: ${VALID_PRIORITIES.join(', ')}` })
+      return
+    }
+
+    let finalDevelopment: string | null = null
+    if (development !== undefined && development !== null && development !== '') {
+      if (typeof development !== 'string' || !VALID_DEVELOPMENTS.includes(development)) {
+        res.status(400).json({
+          error: `development должен быть одним из: ${VALID_DEVELOPMENTS.join(', ')} или null`,
+        })
+        return
+      }
+      finalDevelopment = development
+    }
+
+    const callerProfile = await TeamProfile.findByUserAndTeam(userId, team_id)
+    if (!callerProfile) {
+      res.status(403).json({ error: 'Вы не состоите в этой команде' })
+      return
+    }
+
+    let finalAssigneeId: string | null = null
+    if (assignee_id !== undefined && assignee_id !== null && assignee_id !== '') {
+      if (typeof assignee_id !== 'string') {
+        res.status(400).json({ error: 'assignee_id должен быть строкой или null' })
+        return
+      }
+      const developer = await User.findById(assignee_id)
+      if (!developer) {
+        res.status(404).json({ error: 'Назначаемый пользователь не найден' })
+        return
+      }
+      if (developer.role !== 'developer') {
+        res.status(400).json({ error: 'Назначить можно только разработчика' })
+        return
+      }
+      const devProfile = await TeamProfile.findByUserAndTeam(developer.id, team_id)
+      if (!devProfile) {
+        res.status(400).json({ error: 'Разработчик не состоит в команде' })
+        return
+      }
+      if (finalDevelopment && devProfile.specialization !== finalDevelopment) {
+        res.status(400).json({
+          error: `Специализация разработчика (${devProfile.specialization ?? 'не указана'}) `
+               + `не соответствует задаче (${finalDevelopment})`,
+        })
+        return
+      }
+      finalAssigneeId = developer.id
+    }
+
+    const task = await Task.create({
+      request_id:  null,
+      team_id,
+      assignee_id: finalAssigneeId,
+      title:       title.trim(),
+      description: description ?? null,
+      status:      'todo',
+      priority:    finalPriority,
+      development: finalDevelopment,
+    })
+
+    res.status(201).json(task)
+  }
+
   static async list(req: ExpressRequest, res: Response): Promise<void> {
     const userId = req.session.userId
     if (!userId) {
