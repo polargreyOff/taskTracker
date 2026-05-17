@@ -99,6 +99,19 @@ export class Task {
     return rows.map(r => new Task(r))
   }
 
+  static async unassignUserInTeam(
+    userId:   string,
+    teamId:   string,
+    executor: Executor = pool,
+  ): Promise<void> {
+    await executor.query(
+      `UPDATE tasks
+          SET assignee_id = NULL, updated_at = NOW()
+        WHERE assignee_id = $1 AND team_id = $2`,
+      [userId, teamId]
+    )
+  }
+
   async edit(data: {
     title?:       string
     description?: string | null

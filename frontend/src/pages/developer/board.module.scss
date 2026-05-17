@@ -3,8 +3,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
   flex-wrap: wrap;
+
+  position: sticky;
+  top: 56px; /* AppShell topbar height */
+  z-index: 9;
+  background: var(--bg);
+  padding: 10px 0;
 }
 
 .teamPicker {
@@ -77,7 +83,7 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 14px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .column {
@@ -86,6 +92,8 @@
   border-radius: var(--r-lg);
   padding: 12px;
   min-height: 280px;
+  display: flex;
+  flex-direction: column;
   transition: background 0.12s, border-color 0.12s;
 
   &[data-drag-over='true'] {
@@ -99,7 +107,14 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 6px 12px;
+  padding: 8px 6px 10px;
+  margin: -8px -6px 4px;
+
+  position: sticky;
+  top: 110px; /* AppShell topbar (56) + toolbar (~54) */
+  z-index: 5;
+  background: var(--surface-2);
+  border-radius: var(--r-md) var(--r-md) 0 0;
 }
 
 .columnDot {
@@ -125,6 +140,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex: 1;
 }
 
 .task {
@@ -250,6 +266,10 @@
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--ink-4);
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 80px;
 }
 
 .noTeam {

@@ -1,7 +1,9 @@
 import type { Request, Response } from 'express'
+import pool from '../db'
 import { Team } from '../models/Team'
 import { TeamProfile } from '../models/TeamProfile'
 import { User } from '../models/User'
+import { Task } from '../models/Task'
 
 const VALID_SPECIALIZATIONS = ['frontend', 'backend', 'qa', 'analytics']
 
@@ -106,5 +108,55 @@ export class TeamController {
 
     const profile = await TeamProfile.create(developer.id, specialization, team.id)
     res.status(201).json(profile)
+  }
+
+  static async removeMember(
+    req: Request<{ teamId: string, userId: string }>,
+    res: Response,
+  ): Promise<void> {
+    const callerId = req.session.userId
+    if (!callerId) {
+      res.status(401).json({ error: 'Не авторизован' })
+      return
+    }
+
+    const { teamId, userId } = req.params
+
+    const team = await Team.findById(teamId)
+    if (!team) {
+      res.status(404).json({ error: 'Команда не найдена' })
+      return
+    }
+
+    if (team.created_by !== callerId) {
+      res.status(403).json({ error: 'Вы не являетесь создателем команды' })
+      return
+    }
+
+    if (userId === callerId) {
+      res.status(400).json({ error: 'Нельзя удалить себя из команды' })
+      return
+    }
+
+    const profile = await TeamProfile.findByUserAndTeam(userId, teamId)
+    if (!profile) {
+      res.status(404).json({ error: 'Пользователь не состоит в этой команде' })
+      return
+    }
+
+    const client = await pool.connect()
+    try {
+      await client.query('BEGIN')
+      await Task.unassignUserInTeam(userId, teamId, client)
+      await TeamProfile.delete(userId, teamId, client)
+      await client.query('COMMIT')
+    } catch (e) {
+      await client.query('ROLLBACK')
+      throw e
+    } finally {
+      client.release()
+    }
+
+    res.status(204).end()
   }
 }

@@ -1,4 +1,7 @@
+import type { Pool, PoolClient } from 'pg'
 import pool from '../db'
+
+type Executor = Pool | PoolClient
 
 export interface TeamProfileRow {
   id:             string
@@ -40,5 +43,12 @@ export class TeamProfile {
       [userId, teamId]
     )
     return rows[0] ? new TeamProfile(rows[0]) : null
+  }
+
+  static async delete(userId: string, teamId: string, executor: Executor = pool): Promise<void> {
+    await executor.query(
+      'DELETE FROM team_profiles WHERE user_id = $1 AND team_id = $2',
+      [userId, teamId]
+    )
   }
 }
