@@ -218,4 +218,32 @@ export class TaskController {
     await task.edit({ title, description, status, priority, assignee_id, development })
     res.json(task)
   }
+
+  static async delete(req: ExpressRequest<{ id: string }>, res: Response): Promise<void> {
+    const userId = req.session.userId
+    if (!userId) {
+      res.status(401).json({ error: 'Не авторизован' })
+      return
+    }
+
+    const { id } = req.params
+    const task = await Task.findById(id)
+    if (!task) {
+      res.status(404).json({ error: 'Задача не найдена' })
+      return
+    }
+    if (!task.team_id) {
+      res.status(400).json({ error: 'У задачи не указана команда' })
+      return
+    }
+
+    const callerProfile = await TeamProfile.findByUserAndTeam(userId, task.team_id)
+    if (!callerProfile) {
+      res.status(403).json({ error: 'Вы не состоите в команде этой задачи' })
+      return
+    }
+
+    await Task.delete(task.id)
+    res.status(204).end()
+  }
 }

@@ -112,6 +112,10 @@ export class Task {
     )
   }
 
+  static async delete(id: string): Promise<void> {
+    await pool.query('DELETE FROM tasks WHERE id = $1', [id])
+  }
+
   async edit(data: {
     title?:       string
     description?: string | null
