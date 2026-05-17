@@ -1,3 +1,5 @@
+import 'dotenv/config'
+
 import app from './app'
 import pool from './db'
 

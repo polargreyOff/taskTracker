@@ -1,0 +1,61 @@
+# Подтягивает переменные из ./env (см. .env.example).
+# Запуск: docker compose up --build
+# Сброс БД: docker compose down -v && docker compose up --build
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: tasktracker-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB:       ${DB_NAME}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./backend/src/db/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./backend/src/db/seed_templates.sql:/docker-entrypoint-initdb.d/02-seed-templates.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test:     ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout:  3s
+      retries:  10
+
+  backend:
+    build:
+      context:    ./backend
+      dockerfile: Dockerfile
+    container_name: tasktracker-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT:            ${BACKEND_PORT}
+      FRONTEND_ORIGIN: http://localhost:${FRONTEND_PORT}
+      DB_HOST:         db
+      DB_PORT:         5432
+      DB_USER:         ${DB_USER}
+      DB_PASSWORD:     ${DB_PASSWORD}
+      DB_NAME:         ${DB_NAME}
+      SESSION_SECRET:  ${SESSION_SECRET}
+    ports:
+      - "${BACKEND_PORT}:3000"
+
+  frontend:
+    build:
+      context:    ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:${BACKEND_PORT}
+    container_name: tasktracker-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT}:80"
+
+volumes:
+  db-data:
