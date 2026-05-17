@@ -362,6 +362,10 @@ export default function BoardPage() {
               setTasks(prev => prev.map(t => t.id === updated.id ? updated : t))
               setEditingTaskId(null)
             }}
+            onDelete={taskId => {
+              setTasks(prev => prev.filter(t => t.id !== taskId))
+              setEditingTaskId(null)
+            }}
           />
         )
       })()}

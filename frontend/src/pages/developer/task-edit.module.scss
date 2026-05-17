@@ -177,11 +177,14 @@
 .footer {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 10px;
   padding: 14px 22px;
   border-top: 1px solid var(--line);
   background: var(--surface-2);
+}
+
+.footerSpacer {
+  flex: 1;
 }
 
 .btn {
@@ -212,5 +215,16 @@
   &:hover:enabled {
     color: var(--ink);
     background: var(--surface-3);
+  }
+}
+
+.btnDanger {
+  background: transparent;
+  color: oklch(0.50 0.16 25);
+  border: 1px solid oklch(0.86 0.06 25);
+
+  &:hover:enabled {
+    background: oklch(0.965 0.04 25);
+    color: oklch(0.42 0.18 25);
   }
 }

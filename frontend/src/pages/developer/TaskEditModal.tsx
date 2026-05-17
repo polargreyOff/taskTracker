@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { apiUpdateTask } from '../../api/tasks'
+import { apiUpdateTask, apiDeleteTask } from '../../api/tasks'
 import type { Task } from '../../api/tasks'
 import type { TeamMember } from '../../api/teams'
 import styles from './task-edit.module.scss'
@@ -31,6 +31,7 @@ interface Props {
   teamMembers: TeamMember[]
   onClose:     () => void
   onSave:      (updated: Task) => void
+  onDelete:    (taskId: string) => void
 }
 
 function errorMessage(err: unknown, fallback: string): string {
@@ -44,7 +45,7 @@ function formatDate(iso: string): string {
   })
 }
 
-export default function TaskEditModal({ task, teamMembers, onClose, onSave }: Props) {
+export default function TaskEditModal({ task, teamMembers, onClose, onSave, onDelete }: Props) {
   const [title,       setTitle]       = useState(task.title)
   const [description, setDescription] = useState(task.description ?? '')
   const [status,      setStatus]      = useState(task.status)
@@ -52,8 +53,9 @@ export default function TaskEditModal({ task, teamMembers, onClose, onSave }: Pr
   const [development, setDevelopment] = useState(task.development ?? '')
   const [assigneeId,  setAssigneeId]  = useState(task.assignee_id ?? '')
 
-  const [saving, setSaving] = useState(false)
-  const [error,  setError]  = useState('')
+  const [saving,   setSaving]   = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [error,    setError]    = useState('')
 
   // Close on Escape
   useEffect(() => {
@@ -82,6 +84,24 @@ export default function TaskEditModal({ task, teamMembers, onClose, onSave }: Pr
 
   const trimmedTitle = title.trim()
   const canSave = trimmedTitle.length > 0 && !saving
+
+  const handleDelete = async () => {
+    if (deleting || saving) return
+    const confirmed = window.confirm(
+      `Удалить задачу «${task.title}»?\nЭто действие необратимо.`
+    )
+    if (!confirmed) return
+    setDeleting(true)
+    setError('')
+    try {
+      await apiDeleteTask(task.id)
+      onDelete(task.id)
+    } catch (err) {
+      setError(errorMessage(err, 'Не удалось удалить задачу'))
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   const handleSave = async () => {
     if (!canSave) return
@@ -227,9 +247,18 @@ export default function TaskEditModal({ task, teamMembers, onClose, onSave }: Pr
         <div className={styles.footer}>
           <button
             type="button"
+            className={`${styles.btn} ${styles.btnDanger}`}
+            onClick={handleDelete}
+            disabled={saving || deleting}
+          >
+            {deleting ? 'Удаляем…' : 'Удалить'}
+          </button>
+          <div className={styles.footerSpacer} />
+          <button
+            type="button"
             className={`${styles.btn} ${styles.btnGhost}`}
             onClick={onClose}
-            disabled={saving}
+            disabled={saving || deleting}
           >
             Отмена
           </button>
@@ -237,7 +266,7 @@ export default function TaskEditModal({ task, teamMembers, onClose, onSave }: Pr
             type="button"
             className={`${styles.btn} ${styles.btnPrimary}`}
             onClick={handleSave}
-            disabled={!canSave}
+            disabled={!canSave || deleting}
           >
             {saving ? 'Сохраняем…' : 'Сохранить'}
           </button>

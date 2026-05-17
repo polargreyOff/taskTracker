@@ -46,3 +46,7 @@ export async function apiCreateTask(payload: {
   return data
 }
 
+export async function apiDeleteTask(id: string): Promise<void> {
+  await api.delete(`/tasks/${id}`)
+}
+
